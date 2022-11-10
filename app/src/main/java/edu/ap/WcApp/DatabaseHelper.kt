@@ -12,7 +12,7 @@ import org.json.JSONArray
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("Drop table toilet_database.toilets")
+        //db.execSQL("Drop table toilet_database.toilets")
         db.execSQL(CREATE_TABLE_TOILETS)
     }
 
