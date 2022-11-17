@@ -32,10 +32,6 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.appBarMain.toolbar)
 
-        binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -48,27 +44,7 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
-        val client = OkHttpClient()
-        val request = Request.Builder()
-            .url("https://geodata.antwerpen.be/arcgissql/rest/services/P_Portal/portal_publiek1/MapServer/8/query?outFields=*&where=1%3D1&f=geojson")
-            .build()
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.e("OUR_APP", e.toString())
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
-                    var str_response = response.body!!.string()
-                    //creating json object
-                    val json_contact: JSONObject = JSONObject(str_response)
-                    //creating json array
-                    var jsonarray_info: JSONArray = json_contact.getJSONArray("features")
-                    databaseHelper!!.addJson(jsonarray_info)
-                }
-            }
-        })
+        databaseHelper!!.getData()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

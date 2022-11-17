@@ -20,7 +20,7 @@ class ListFragment : Fragment(R.layout.fragment_list) {
 
     private var _binding: FragmentListBinding? = null
     private var databaseHelper: DatabaseHelper? = null
-    private var arrayList: ArrayList<String>? = null
+    private var arrayList: ArrayList<ToiletViewModel>? = null
     private var linearLayoutManager : LinearLayoutManager? = null
 
     // This property is only valid between onCreateView and
@@ -38,22 +38,27 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val listViewModel =
-            ViewModelProvider(this).get(ListViewModel::class.java)
 
         _binding = FragmentListBinding.inflate(inflater, container, false)
         val root: View = binding.root
+        readData()
+        binding.button.setOnClickListener {
+            databaseHelper!!.getData()
+            readData()
+        }
+        return root
+    }
 
+    fun readData(){
         arrayList = databaseHelper!!.allToilets()
         val recyclerView : RecyclerView = binding.recyclerview
         recyclerView.layoutManager = linearLayoutManager
         val data = ArrayList<ToiletViewModel>()
         arrayList!!.forEach{
-            data.add(ToiletViewModel(it))
+            data.add(it)
         }
         val adapter = CustomAdapter(data)
         recyclerView.adapter = adapter
-        return root
     }
 
     override fun onDestroyView() {

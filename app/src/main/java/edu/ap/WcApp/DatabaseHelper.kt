@@ -7,12 +7,15 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.beust.klaxon.JsonObject
+import okhttp3.*
 import org.json.JSONArray
+import org.json.JSONObject
+import java.io.IOException
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(db: SQLiteDatabase) {
-        //db.execSQL("Drop table toilet_database.toilets")
+        //db.execSQL(DELETE_TABLE_TOILETS)
         db.execSQL(CREATE_TABLE_TOILETS)
     }
 
@@ -23,37 +26,26 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     // loop through all rows and adding to Students list
     @SuppressLint("Range")
-    fun allToilets(): ArrayList<String> {
-        val studentsArrayList = ArrayList<String>()
+    fun allToilets(): ArrayList<ToiletViewModel> {
+        val toiletsArrayList = ArrayList<ToiletViewModel>()
         var name: String
         val db = this.readableDatabase
         val cursor = db.rawQuery(SELECT_TOILETS, null)
-
-        //val projection = arrayOf(KEY_ID, STRAAT, HUISNUMMER)
-        //val sortOrder = "${STRAAT} ASC"
-        //
-        //val cursor = db.query(
-        //    TABLE_TOILETS,
-        //    projection,
-        //    null,
-        //    null,
-        //    null,
-        //    null,
-        //    sortOrder
-        //)
-
         with(cursor) {
             while (moveToNext()) {
                 val street = cursor.getString(cursor.getColumnIndex(STRAAT))
                 val huisnr = cursor.getString(cursor.getColumnIndex(HUISNUMMER))
-                //val lat = cursor.getString(cursor.getColumnIndex(LAT))
-                //val lon = cursor.getString(cursor.getColumnIndex(LONG))
-                studentsArrayList.add(street + " " + huisnr+" ")
+                val omschrijving = cursor.getString(cursor.getColumnIndex(OMSCHRIJVING))
+                val lat = cursor.getString(cursor.getColumnIndex(LAT))
+                val lon = cursor.getString(cursor.getColumnIndex(LONG))
+                val doelgroep = cursor.getString(cursor.getColumnIndex(DOELGROEP))
+                val luiertafel = cursor.getString(cursor.getColumnIndex(LUIERTAFEL))
+                toiletsArrayList.add(ToiletViewModel(omschrijving,street+" "+huisnr,lat.toFloat(), lon.toFloat(), doelgroep, luiertafel))
             }
         }
         cursor.close()
 
-        return studentsArrayList
+        return toiletsArrayList
     }
 
     fun addToilet(firstName: String, lastName: String): Long {
@@ -63,6 +55,31 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         values.put(HUISNUMMER, lastName)
 
         return db.insert(TABLE_TOILETS, null, values)
+    }
+
+    fun getData(){
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url("https://geodata.antwerpen.be/arcgissql/rest/services/P_Portal/portal_publiek1/MapServer/8/query?outFields=*&where=1%3D1&f=geojson")
+            .build()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("OUR_APP", e.toString())
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                    var str_response = response.body!!.string()
+                    //creating json object
+                    val json_contact: JSONObject = JSONObject(str_response)
+                    //creating json array
+                    var jsonarray_info: JSONArray = json_contact.getJSONArray("features")
+                    Log.d("json",jsonarray_info.toString())
+                    addJson(jsonarray_info)
+                }
+            }
+        })
     }
     fun addJson(json: JSONArray) {
         val db = this.writableDatabase
@@ -75,6 +92,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             var prop = jsonobject.getJSONObject("properties")
             var geometry = jsonobject.getJSONObject("geometry")
             var coord = geometry.getJSONArray("coordinates")
+            values.put(OMSCHRIJVING, prop.getString("OMSCHRIJVING"))
             values.put(HUISNUMMER, prop.getString("HUISNUMMER"))
             values.put(STRAAT, prop.getString("STRAAT"))
             values.put(LAT, coord.getString(0))
@@ -88,16 +106,16 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
 
-        var DATABASE_NAME = "toilet_database"
-        private val DATABASE_VERSION = 4
+        var DATABASE_NAME = "toilets"
+        private val DATABASE_VERSION = 3
         private val TABLE_TOILETS = "toilets"
         private val KEY_ID = "id"
-        private val LAT = "lat"
-        private val LONG = "long"
+        private val LAT = "LAT"
+        private val LONG = "LONG"
         private val CATEGGORIE = "categorie"
         private val PUBLICEREN = "publiceren"
         private val PRIORITAIR = "prioritair"
-        private val OMSCHRIJVING = "omschrijving"
+        private val OMSCHRIJVING = "OMSCHRIJVING"
         private val EXTRA_INFO_PUBLIEK ="EXTRA_INFO_PUBLIEK"
         private val VRIJSTAAND ="VRIJSTAAND"
         private val TYPE = "TYPE"
@@ -117,6 +135,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "(" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + STRAAT + " TEXT, "
                 + HUISNUMMER + " TEXT,"
+                + OMSCHRIJVING + " TEXT,"
                 + LUIERTAFEL + " TEXT,"
                 + LAT + " TEXT,"
                 + LONG + " TEXT,"
