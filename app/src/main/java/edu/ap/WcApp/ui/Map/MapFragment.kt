@@ -149,9 +149,9 @@ class MapFragment : Fragment() {
             ActivityCompat.requestPermissions(requireActivity(), arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 101)
         }
         val task = fusedLocationProviderClient.lastLocation
-        Log.d("MapFragment", "Trying to get location")
+        // default = Ellermanstraat 33
+        setCenter(GeoPoint(51.23020595, 4.41655480828479), "Campus Ellermanstraat")
         task.addOnSuccessListener {
-            Log.d("MapFragment", "Got location")
             if (it != null) {
                 setCenter(GeoPoint(it.latitude, it.longitude), "MyLocation")
             }
@@ -163,7 +163,6 @@ class MapFragment : Fragment() {
     private fun addWcMarkers() {
         arrayList = databaseHelper!!.allToilets()
         arrayList!!.forEach {
-            Log.d("MapFragment", "Toilet marker added: ${it.lat} ,${it.lon}")
             addMarker(GeoPoint(it.lat, it.lon), it.addres)
         }
     }
