@@ -20,6 +20,8 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import edu.ap.WcApp.DatabaseHelper
+import edu.ap.WcApp.ToiletViewModel
 
 import edu.ap.WcApp.databinding.FragmentMapBinding
 import okhttp3.OkHttpClient
@@ -43,6 +45,9 @@ class MapFragment : Fragment() {
 
     private var _binding: FragmentMapBinding? = null
 
+    private var databaseHelper: DatabaseHelper? = null
+    private var arrayList: ArrayList<ToiletViewModel>? = null
+
     private lateinit var mMapView: MapView
     private var mMyLocationOverlay: ItemizedOverlay<OverlayItem>? = null
     private var items = ArrayList<OverlayItem>()
@@ -56,6 +61,11 @@ class MapFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        this.databaseHelper = DatabaseHelper(context)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -145,6 +155,16 @@ class MapFragment : Fragment() {
             if (it != null) {
                 setCenter(GeoPoint(it.latitude, it.longitude), "MyLocation")
             }
+        }
+
+        addWcMarkers()
+    }
+
+    private fun addWcMarkers() {
+        arrayList = databaseHelper!!.allToilets()
+        arrayList!!.forEach {
+            Log.d("MapFragment", "Toilet marker added: ${it.lat} ,${it.lon}")
+            addMarker(GeoPoint(it.lat, it.lon), it.addres)
         }
     }
 

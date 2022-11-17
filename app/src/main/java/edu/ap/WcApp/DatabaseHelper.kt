@@ -40,7 +40,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 val lon = cursor.getString(cursor.getColumnIndex(LONG))
                 val doelgroep = cursor.getString(cursor.getColumnIndex(DOELGROEP))
                 val luiertafel = cursor.getString(cursor.getColumnIndex(LUIERTAFEL))
-                toiletsArrayList.add(ToiletViewModel(omschrijving,street+" "+huisnr,lat.toFloat(), lon.toFloat(), doelgroep, luiertafel))
+                toiletsArrayList.add(ToiletViewModel(omschrijving,street+" "+huisnr,lat.toDouble(), lon.toDouble(), doelgroep, luiertafel))
             }
         }
         cursor.close()
@@ -95,8 +95,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             values.put(OMSCHRIJVING, prop.getString("OMSCHRIJVING"))
             values.put(HUISNUMMER, prop.getString("HUISNUMMER"))
             values.put(STRAAT, prop.getString("STRAAT"))
-            values.put(LAT, coord.getString(0))
-            values.put(LONG, coord.getString(1))
+            values.put(LAT, coord.getString(1))
+            values.put(LONG, coord.getString(0))
             values.put(DOELGROEP, prop.getString("DOELGROEP"))
             values.put(LUIERTAFEL, prop.getString("LUIERTAFEL"))
             db.insert(TABLE_TOILETS, null, values)
