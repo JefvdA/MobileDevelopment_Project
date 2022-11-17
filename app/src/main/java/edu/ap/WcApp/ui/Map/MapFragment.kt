@@ -1,12 +1,7 @@
 package edu.ap.WcApp.ui.Map
 
 import android.Manifest
-import android.app.Activity
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.content.Context.NOTIFICATION_SERVICE
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -16,19 +11,15 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
-import edu.ap.WcApp.R
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 import edu.ap.WcApp.databinding.FragmentMapBinding
 import okhttp3.OkHttpClient
@@ -59,6 +50,8 @@ class MapFragment : Fragment() {
     private var searchButton: Button? = null
     private var clearButton: Button? = null
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
+
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -138,8 +131,21 @@ class MapFragment : Fragment() {
         //this.mMapView?.overlays?.add(miniMapOverlay)
 
         mMapView?.controller?.setZoom(17.0)
-        // default = Ellermanstraat 33
-        setCenter(GeoPoint(51.23020595, 4.41655480828479), "Campus Ellermanstraat")
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 101)
+        }
+        val task = fusedLocationProviderClient.lastLocation
+        Log.d("MapFragment", "Trying to get location")
+        task.addOnSuccessListener {
+            Log.d("MapFragment", "Got location")
+            if (it != null) {
+                setCenter(GeoPoint(it.latitude, it.longitude), "MyLocation")
+            }
+        }
     }
 
     private fun addMarker(geoPoint: GeoPoint, name: String) {
