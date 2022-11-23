@@ -4,39 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.Map.MapFragment">
-
-    <TextView
-        android:id="@+id/tvnames"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#000000"
-        android:textSize="20sp"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="432dp" />
-
-    <TextView
-        android:id="@+id/text_gallery"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    tools:context=".ui.List.ListFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:itemCount="5"
-        tools:listitem="@layout/card_view_design" />
-
+        tools:listitem="@layout/card_view_design"
+        android:layout_marginBottom="80dp"
+        android:layout_marginTop="80dp"/>
 
     <Button
         android:id="@+id/button"
@@ -48,6 +25,37 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.976" />
+        app:layout_constraintVertical_bias="0.975" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        tools:ignore="MissingConstraints">
+
+        <CheckBox android:id="@+id/man"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="man"
+            tools:ignore="MissingConstraints" />
+
+        <CheckBox android:id="@+id/vrouw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="vrouw"
+            tools:ignore="MissingConstraints" />
+        <CheckBox android:id="@+id/rolstoel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="rolstoel"
+            tools:ignore="MissingConstraints" />
+        <CheckBox android:id="@+id/luiertafel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="luiertafel"
+            tools:ignore="MissingConstraints" />
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

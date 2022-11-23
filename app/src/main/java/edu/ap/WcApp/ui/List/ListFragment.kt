@@ -1,27 +1,44 @@
 package edu.ap.WcApp.ui.List
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import edu.ap.WcApp.CustomAdapter
 import edu.ap.WcApp.DatabaseHelper
 import edu.ap.WcApp.R
 import edu.ap.WcApp.ToiletViewModel
 import edu.ap.WcApp.databinding.FragmentListBinding
+import org.osmdroid.util.Delay
+import org.osmdroid.util.GeoPoint
 import java.util.ArrayList
+import android.location.Location.distanceBetween
+import android.widget.CheckBox
 
 class ListFragment : Fragment(R.layout.fragment_list) {
 
     private var _binding: FragmentListBinding? = null
     private var databaseHelper: DatabaseHelper? = null
     private var arrayList: ArrayList<ToiletViewModel>? = null
-    private var linearLayoutManager : LinearLayoutManager? = null
+    private var linearLayoutManager: LinearLayoutManager? = null
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var location: Location
+    private var man:Boolean = false
+    private var vrouw:Boolean=false
+    private var rolstoel:Boolean=false
+    private var luiertafel=false
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -38,27 +55,98 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
+        location = Location("start")
+        location.longitude = 0.0
+        location.latitude = 0.0
+        getLocation()
         _binding = FragmentListBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        readData()
         binding.button.setOnClickListener {
             databaseHelper!!.getData()
+            getLocation()
+        }
+
+        binding.man.setOnClickListener{
+            man = binding.man.isChecked
+            readData()
+        }
+
+        binding.vrouw.setOnClickListener{
+            vrouw = binding.vrouw.isChecked
+            readData()
+        }
+
+        binding.rolstoel.setOnClickListener{
+            rolstoel = binding.rolstoel.isChecked
+            readData()
+        }
+
+        binding.luiertafel.setOnClickListener{
+            luiertafel = binding.luiertafel.isChecked
             readData()
         }
         return root
     }
 
-    fun readData(){
+    fun readData() {
         arrayList = databaseHelper!!.allToilets()
-        val recyclerView : RecyclerView = binding.recyclerview
+        val recyclerView: RecyclerView = binding.recyclerview
         recyclerView.layoutManager = linearLayoutManager
-        val data = ArrayList<ToiletViewModel>()
-        arrayList!!.forEach{
+        var data = ArrayList<ToiletViewModel>()
+        arrayList!!.sortedWith(compareBy({ it.distance }))
+        arrayList!!.forEach {
+            val dest = Location("dest")
+            dest.longitude = it.lon
+            dest.latitude = it.lat
+            it.distance = location.distanceTo(dest)
             data.add(it)
         }
-        val adapter = CustomAdapter(data)
+        Log.d("readdata", location.toString())
+        var output = data.sortedWith(compareBy({ it.distance }))
+        if(man){
+            output = output.filter { it.doelgroep.contains("man") }
+        }
+        if(vrouw){
+            output = output.filter { it.doelgroep.contains("vrouw") }
+        }
+        if(luiertafel){
+            output = output.filter{ it.luiertafel.contains(("ja"))}
+        }
+        if(rolstoel){
+            Log.d("?", "vragen aan meneer waar data zich bevindt")
+        }
+        val adapter = CustomAdapter(output)
         recyclerView.adapter = adapter
+    }
+
+    fun getLocation() {
+        fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(requireContext())
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                101
+            )
+        }
+        val task = fusedLocationProviderClient.lastLocation
+        task.addOnSuccessListener {
+            if (it != null) {
+                location.latitude = it.latitude
+                location.longitude = it.longitude
+                Log.d("loc", location.toString())
+                readData()
+            }
+        }
     }
 
     override fun onDestroyView() {
