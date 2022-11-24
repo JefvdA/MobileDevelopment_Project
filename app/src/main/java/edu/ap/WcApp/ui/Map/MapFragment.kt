@@ -147,6 +147,8 @@ class MapFragment : Fragment() {
 
         mMapView.setTileSource(TileSourceFactory.WIKIMEDIA)
 
+        mMapView.setMultiTouchControls(true)
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
