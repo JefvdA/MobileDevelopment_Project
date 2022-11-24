@@ -13,8 +13,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.livedata.core.R
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
@@ -35,6 +37,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.ItemizedIconOverlay
 import org.osmdroid.views.overlay.ItemizedOverlay
 import org.osmdroid.views.overlay.MapEventsOverlay
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.OverlayItem
 import java.io.File
 import java.net.URL
@@ -163,19 +166,31 @@ class MapFragment : Fragment() {
     private fun addWcMarkers() {
         arrayList = databaseHelper!!.allToilets()
         arrayList!!.forEach {
-            addMarker(GeoPoint(it.lat, it.lon), it.addres)
+            addMarker(GeoPoint(it.lat, it.lon), it.addres, false)
         }
     }
 
-    private fun addMarker(geoPoint: GeoPoint, name: String) {
-        items.add(OverlayItem(name, name, geoPoint))
-        mMyLocationOverlay = ItemizedIconOverlay(items, null, requireContext())
-        mMapView?.overlays?.add(mMyLocationOverlay)
+    private fun addMarker(geoPoint: GeoPoint, name: String, isMyLocationMarker: Boolean) {
+        val marker = Marker(mMapView)
+
+        var imageResource = resources.getIdentifier("@drawable/ic_map_marker_pin_red", "drawable", requireActivity().packageName)
+
+        if (isMyLocationMarker)
+            imageResource = resources.getIdentifier("@drawable/ic_map_marker_pin_blue", "drawable", requireActivity().packageName)
+
+        marker.icon = ResourcesCompat.getDrawable(resources, imageResource, resources.newTheme())
+
+        marker.setOnMarkerClickListener { _ , _ ->  true }
+
+        marker.position = geoPoint
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+
+        mMapView.overlays.add(marker)
     }
 
     private fun setCenter(geoPoint: GeoPoint, name: String) {
         mMapView?.controller?.setCenter(geoPoint)
-        addMarker(geoPoint, name)
+        addMarker(geoPoint, name, true)
     }
 
     private fun getAddressOrLocation(url : URL) {
