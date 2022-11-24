@@ -52,11 +52,6 @@ class MapFragment : Fragment() {
     private var arrayList: ArrayList<ToiletViewModel>? = null
 
     private lateinit var mMapView: MapView
-    private var mMyLocationOverlay: ItemizedOverlay<OverlayItem>? = null
-    private var items = ArrayList<OverlayItem>()
-    private var searchField: EditText? = null
-    private var searchButton: Button? = null
-    private var clearButton: Button? = null
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -92,23 +87,6 @@ class MapFragment : Fragment() {
         val mapController = mMapView.controller
         mapController.setZoom(9.5)
 
-        searchField = binding.searchTxtview
-        searchButton = binding.searchButton
-        searchButton?.setOnClickListener {
-            val url = URL(urlNominatim + "search?q=" + URLEncoder.encode(searchField?.text.toString(), "UTF-8") + "&format=json")
-            it.hideKeyboard()
-            //val task = MyAsyncTask()
-            //task.execute(url)
-            getAddressOrLocation(url)
-        }
-
-        clearButton = binding.clearButton
-        clearButton?.setOnClickListener {
-            mMapView?.overlays?.clear()
-            // Redraw map
-            mMapView?.invalidate()
-        }
-
         // Initialize map
         initMap()
 
@@ -121,31 +99,9 @@ class MapFragment : Fragment() {
     }
 
     private fun initMap() {
-        mMapView?.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE)
-        // add receiver to get location from tap
-        val mReceive: MapEventsReceiver = object : MapEventsReceiver {
-            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
-                //Toast.makeText(baseContext, p.latitude.toString() + " - " + p.longitude, Toast.LENGTH_LONG).show()
-                val url = URL(urlNominatim + "reverse?lat=" + p.latitude.toString() + "&lon=" + p.longitude.toString() + "&format=json")
-                //val task = MyAsyncTask()
-                //task.execute(url)
-                getAddressOrLocation(url)
-                return false
-            }
-
-            override fun longPressHelper(p: GeoPoint): Boolean {
-                return false
-            }
-        }
-        mMapView?.overlays?.add(MapEventsOverlay(mReceive))
-
-        // MiniMap
-        //val miniMapOverlay = MinimapOverlay(this, mMapView!!.tileRequestCompleteHandler)
-        //this.mMapView?.overlays?.add(miniMapOverlay)
+        mMapView?.setTileSource(TileSourceFactory.WIKIMEDIA)
 
         mMapView?.controller?.setZoom(17.0)
-
-        mMapView.setTileSource(TileSourceFactory.WIKIMEDIA)
 
         mMapView.setMultiTouchControls(true)
 
@@ -195,53 +151,6 @@ class MapFragment : Fragment() {
     private fun setCenter(geoPoint: GeoPoint, name: String) {
         mMapView?.controller?.setCenter(geoPoint)
         addMarker(geoPoint, name, true)
-    }
-
-    private fun getAddressOrLocation(url : URL) {
-
-        var searchReverse = false
-
-        Thread(Runnable {
-            searchReverse = (url.toString().indexOf("reverse", 0, true) > -1)
-            val client = OkHttpClient()
-            val response: Response
-            val request = Request.Builder()
-                .url(url)
-                .build()
-            response = client.newCall(request).execute()
-
-            val result = response.body!!.string()
-
-            requireActivity().runOnUiThread {
-                val jsonString = StringBuilder(result!!)
-                Log.d("be.ap.edu.mapsaver", jsonString.toString())
-
-                val parser: Parser = Parser.default()
-
-                if (searchReverse) {
-                    val obj = parser.parse(jsonString) as JsonObject
-
-//                    createNotification(
-//                        R.drawable.ic_menu_compass,
-//                        "Reverse lookup result",
-//                        obj.string("display_name")!!,
-//                        "my_channel_01")
-                }
-                else {
-                    val array = parser.parse(jsonString) as JsonArray<JsonObject>
-
-                    if (array.size > 0) {
-                        val obj = array[0]
-                        // mapView center must be updated here and not in doInBackground because of UIThread exception
-                        val geoPoint = GeoPoint(obj.string("lat")!!.toDouble(), obj.string("lon")!!.toDouble())
-                        setCenter(geoPoint, obj.string("display_name")!!)
-                    }
-                    else {
-                        Toast.makeText(requireContext(), "Address not found", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }).start()
     }
 
     override fun onPause() {
