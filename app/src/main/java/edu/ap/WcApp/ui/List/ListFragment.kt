@@ -35,10 +35,6 @@ class ListFragment : Fragment(R.layout.fragment_list) {
     private var linearLayoutManager: LinearLayoutManager? = null
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var location: Location
-    private var man:Boolean = false
-    private var vrouw:Boolean=false
-    private var rolstoel:Boolean=false
-    private var luiertafel=false
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -61,28 +57,29 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         getLocation()
         _binding = FragmentListBinding.inflate(inflater, container, false)
         val root: View = binding.root
+        readData()
         binding.button.setOnClickListener {
             databaseHelper!!.getData()
-            getLocation()
+            readData()
         }
 
         binding.man.setOnClickListener{
-            man = binding.man.isChecked
+            databaseHelper!!.man = binding.man.isChecked
             readData()
         }
 
         binding.vrouw.setOnClickListener{
-            vrouw = binding.vrouw.isChecked
+            databaseHelper!!.vrouw = binding.vrouw.isChecked
             readData()
         }
 
         binding.rolstoel.setOnClickListener{
-            rolstoel = binding.rolstoel.isChecked
+            databaseHelper!!.rolstoel = binding.rolstoel.isChecked
             readData()
         }
 
         binding.luiertafel.setOnClickListener{
-            luiertafel = binding.luiertafel.isChecked
+            databaseHelper!!.luiertafel = binding.luiertafel.isChecked
             readData()
         }
         return root
@@ -93,7 +90,6 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         val recyclerView: RecyclerView = binding.recyclerview
         recyclerView.layoutManager = linearLayoutManager
         var data = ArrayList<ToiletViewModel>()
-        arrayList!!.sortedWith(compareBy({ it.distance }))
         arrayList!!.forEach {
             val dest = Location("dest")
             dest.longitude = it.lon
@@ -101,21 +97,8 @@ class ListFragment : Fragment(R.layout.fragment_list) {
             it.distance = location.distanceTo(dest)
             data.add(it)
         }
-        Log.d("readdata", location.toString())
-        var output = data.sortedWith(compareBy({ it.distance }))
-        if(man){
-            output = output.filter { it.doelgroep.contains("man") }
-        }
-        if(vrouw){
-            output = output.filter { it.doelgroep.contains("vrouw") }
-        }
-        if(luiertafel){
-            output = output.filter{ it.luiertafel.contains(("ja"))}
-        }
-        if(rolstoel){
-            Log.d("?", "vragen aan meneer waar data zich bevindt")
-        }
-        val adapter = CustomAdapter(output)
+        arrayList!!.sortedWith(compareBy({ it.distance }))
+        val adapter = CustomAdapter(data)
         recyclerView.adapter = adapter
     }
 

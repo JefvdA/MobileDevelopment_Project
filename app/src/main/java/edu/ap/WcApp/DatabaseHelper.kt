@@ -14,8 +14,12 @@ import java.io.IOException
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
+    public var man:Boolean=false
+    public var vrouw:Boolean=false
+    public var rolstoel:Boolean=false
+    public var luiertafel:Boolean=false
     override fun onCreate(db: SQLiteDatabase) {
-        //db.execSQL(DELETE_TABLE_TOILETS)
+        db.execSQL(DELETE_TABLE_TOILETS)
         db.execSQL(CREATE_TABLE_TOILETS)
     }
 
@@ -40,12 +44,25 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 val lon = cursor.getString(cursor.getColumnIndex(LONG))
                 val doelgroep = cursor.getString(cursor.getColumnIndex(DOELGROEP))
                 val luiertafel = cursor.getString(cursor.getColumnIndex(LUIERTAFEL))
-                toiletsArrayList.add(ToiletViewModel(omschrijving,street+" "+huisnr,lat.toDouble(), lon.toDouble(), doelgroep, luiertafel))
+                val rolstoel = cursor.getString(cursor.getColumnIndex(INTEGRAAL_TOEGANKELIJK))
+                toiletsArrayList.add(ToiletViewModel(omschrijving,street+" "+huisnr,rolstoel, lat.toDouble(), lon.toDouble(), doelgroep, luiertafel))
             }
         }
         cursor.close()
-
-        return toiletsArrayList
+        var output = toiletsArrayList as List<ToiletViewModel>
+        if(man){
+            output = output.filter { it.doelgroep.contains("man") }
+        }
+        if(vrouw){
+            output = output.filter { it.doelgroep.contains("vrouw") }
+        }
+        if(luiertafel){
+            output = output.filter{ it.luiertafel.contains(("ja"))}
+        }
+        if(rolstoel){
+            output = output.filter{ it.rolstoel.contains(("ja"))}
+        }
+        return output as ArrayList<ToiletViewModel>
     }
 
     fun addToilet(firstName: String, lastName: String): Long {
@@ -99,6 +116,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             values.put(LONG, coord.getString(0))
             values.put(DOELGROEP, prop.getString("DOELGROEP").trim())
             values.put(LUIERTAFEL, prop.getString("LUIERTAFEL").trim())
+            values.put(INTEGRAAL_TOEGANKELIJK, prop.getString("INTEGRAAL_TOEGANKELIJK").trim())
             db.insert(TABLE_TOILETS, null, values)
         }
         db.close()
@@ -107,7 +125,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     companion object {
 
         var DATABASE_NAME = "toilets"
-        private val DATABASE_VERSION = 3
+        private val DATABASE_VERSION = 5
         private val TABLE_TOILETS = "toilets"
         private val KEY_ID = "id"
         private val LAT = "LAT"
@@ -130,6 +148,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         private val OPENINGSUREN_OPM = "OPENINGSUREN_OPM"
         private val CONTACTPERSOON = "CONTACTPERSOON"
         private val CONTACTGEGEVENS ="CONTACTGEGEVENS"
+        private val INTEGRAAL_TOEGANKELIJK ="INTEGRAAL_TOEGANKELIJK"
 
         private val CREATE_TABLE_TOILETS = ("CREATE TABLE "+ TABLE_TOILETS +
                 "(" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -139,6 +158,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 + LUIERTAFEL + " TEXT,"
                 + LAT + " TEXT,"
                 + LONG + " TEXT,"
+                + INTEGRAAL_TOEGANKELIJK + " TEXT,"
                 + DOELGROEP + " TEXT );")
 
         private val DELETE_TABLE_TOILETS = "DROP TABLE IF EXISTS $TABLE_TOILETS"
