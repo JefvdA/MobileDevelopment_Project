@@ -145,6 +145,8 @@ class MapFragment : Fragment() {
 
         mMapView?.controller?.setZoom(17.0)
 
+        mMapView.setTileSource(TileSourceFactory.WIKIMEDIA)
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
