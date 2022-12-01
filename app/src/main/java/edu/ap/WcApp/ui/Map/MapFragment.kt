@@ -55,6 +55,8 @@ class MapFragment : Fragment() {
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var myLocationMarker: Marker
+    private var locationoMarkerExists: Boolean = false
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -144,6 +146,14 @@ class MapFragment : Fragment() {
 
         marker.position = geoPoint
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+
+        if (isMyLocationMarker && locationoMarkerExists)
+            mMapView.overlays.remove(myLocationMarker)
+
+        if (isMyLocationMarker) {
+            myLocationMarker = marker
+            locationoMarkerExists = true
+        }
 
         mMapView.overlays.add(marker)
     }
