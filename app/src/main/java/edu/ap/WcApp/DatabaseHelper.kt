@@ -6,6 +6,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import androidx.lifecycle.ViewModel
 import com.beust.klaxon.JsonObject
 import okhttp3.*
 import org.json.JSONArray
@@ -14,10 +15,7 @@ import java.io.IOException
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
-    public var man:Boolean=false
-    public var vrouw:Boolean=false
-    public var rolstoel:Boolean=false
-    public var luiertafel:Boolean=false
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(DELETE_TABLE_TOILETS)
         db.execSQL(CREATE_TABLE_TOILETS)
@@ -49,20 +47,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             }
         }
         cursor.close()
-        var output = toiletsArrayList as List<ToiletViewModel>
-        if(man){
-            output = output.filter { it.doelgroep.contains("man") }
-        }
-        if(vrouw){
-            output = output.filter { it.doelgroep.contains("vrouw") }
-        }
-        if(luiertafel){
-            output = output.filter{ it.luiertafel.contains(("ja"))}
-        }
-        if(rolstoel){
-            output = output.filter{ it.rolstoel.contains(("ja"))}
-        }
-        return output as ArrayList<ToiletViewModel>
+        Log.d("database", toiletsArrayList.toString())
+        return toiletsArrayList
     }
 
     fun addToilet(firstName: String, lastName: String): Long {

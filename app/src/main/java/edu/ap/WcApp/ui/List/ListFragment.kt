@@ -16,16 +16,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import edu.ap.WcApp.CustomAdapter
-import edu.ap.WcApp.DatabaseHelper
-import edu.ap.WcApp.R
-import edu.ap.WcApp.ToiletViewModel
 import edu.ap.WcApp.databinding.FragmentListBinding
 import org.osmdroid.util.Delay
 import org.osmdroid.util.GeoPoint
 import java.util.ArrayList
 import android.location.Location.distanceBetween
 import android.widget.CheckBox
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.get
+import edu.ap.WcApp.*
 
 class ListFragment : Fragment(R.layout.fragment_list) {
 
@@ -35,6 +37,7 @@ class ListFragment : Fragment(R.layout.fragment_list) {
     private var linearLayoutManager: LinearLayoutManager? = null
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var location: Location
+    private val sharedViewModel: SharedViewModel by viewModels();
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -51,42 +54,47 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        sharedViewModel.getDataFromDb()
+        arrayList = arrayListOf()
+        sharedViewModel.getSelected().observe(viewLifecycleOwner, Observer { list ->
+            Log.d("test", list.toString())
+            arrayList = list as ArrayList<ToiletViewModel>
+            readData()
+        })
         location = Location("start")
         location.longitude = 0.0
         location.latitude = 0.0
         getLocation()
         _binding = FragmentListBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        readData()
         binding.button.setOnClickListener {
             databaseHelper!!.getData()
-            readData()
+            sharedViewModel.getDataFromDb()
         }
 
         binding.man.setOnClickListener{
-            databaseHelper!!.man = binding.man.isChecked
-            readData()
+            SharedViewModel.man = binding.man.isChecked
+            sharedViewModel.getDataFromDb()
         }
 
         binding.vrouw.setOnClickListener{
-            databaseHelper!!.vrouw = binding.vrouw.isChecked
-            readData()
+            SharedViewModel.vrouw = binding.vrouw.isChecked
+            sharedViewModel.getDataFromDb()
         }
 
         binding.rolstoel.setOnClickListener{
-            databaseHelper!!.rolstoel = binding.rolstoel.isChecked
-            readData()
+            SharedViewModel.rolstoel = binding.rolstoel.isChecked
+            sharedViewModel.getDataFromDb()
         }
 
         binding.luiertafel.setOnClickListener{
-            databaseHelper!!.luiertafel = binding.luiertafel.isChecked
-            readData()
+            SharedViewModel.luiertafel = binding.luiertafel.isChecked
+            sharedViewModel.getDataFromDb()
         }
         return root
     }
 
     fun readData() {
-        arrayList = databaseHelper!!.allToilets()
         val recyclerView: RecyclerView = binding.recyclerview
         recyclerView.layoutManager = linearLayoutManager
         var data = ArrayList<ToiletViewModel>()
@@ -97,7 +105,7 @@ class ListFragment : Fragment(R.layout.fragment_list) {
             it.distance = location.distanceTo(dest)
             data.add(it)
         }
-        arrayList!!.sortedWith(compareBy({ it.distance }))
+        data.sortBy { it.distance }
         val adapter = CustomAdapter(data)
         recyclerView.adapter = adapter
     }
