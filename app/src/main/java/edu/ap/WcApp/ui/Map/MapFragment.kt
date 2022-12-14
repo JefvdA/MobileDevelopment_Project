@@ -2,6 +2,7 @@ package edu.ap.WcApp.ui.Map
 
 import android.Manifest
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -10,32 +11,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.livedata.core.R
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Parser
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import edu.ap.WcApp.DatabaseHelper
+import edu.ap.WcApp.MyMapEventsReceiver
 import edu.ap.WcApp.SharedViewModel
 import edu.ap.WcApp.ToiletViewModel
 
 import edu.ap.WcApp.databinding.FragmentMapBinding
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import org.osmdroid.config.Configuration
-import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.ItemizedIconOverlay
 import org.osmdroid.views.overlay.ItemizedOverlay
@@ -61,6 +53,9 @@ class MapFragment : Fragment() {
     private lateinit var myLocationMarker: Marker
     private var locationoMarkerExists: Boolean = false
     private val sharedViewModel: SharedViewModel by viewModels();
+
+    private lateinit var sharedPrefs: SharedPreferences
+    private lateinit var clearButton: Button
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -100,15 +95,19 @@ class MapFragment : Fragment() {
         val mapController = mMapView.controller
         mapController.setZoom(9.5)
 
+        sharedPrefs = requireActivity().getPreferences(Context.MODE_PRIVATE)
+
+        clearButton = binding.clearButton
+
+        clearButton.setOnClickListener {
+            removeSavedLocation()
+            clearButton.isEnabled = false
+        }
+
         // Initialize map
         initMap()
 
         return root
-    }
-
-    private fun View.hideKeyboard() {
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
     private fun initMap() {
@@ -116,8 +115,31 @@ class MapFragment : Fragment() {
 
         mMapView?.controller?.setZoom(17.0)
 
+        mMapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
         mMapView.setMultiTouchControls(true)
 
+        val mReceiver = MyMapEventsReceiver(::addLocationMarker)
+        val mEvOverlay = MapEventsOverlay(mReceiver)
+        mMapView.overlays.add(mEvOverlay)
+
+        val savedLat = sharedPrefs.getFloat("lat", 0f)
+        val savedLong = sharedPrefs.getFloat("long", 0f)
+        if (savedLat != 0f && savedLong != 0f){
+            setCenter(GeoPoint(savedLat.toDouble(), savedLong.toDouble()), "Saved location")
+        } else {
+            getLocation()
+        }
+
+        addWcMarkers()
+    }
+
+    private fun removeSavedLocation() {
+        sharedPrefs.edit().remove("lat").apply()
+        sharedPrefs.edit().remove("long").apply()
+        getLocation()
+    }
+
+    private fun getLocation() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -125,6 +147,7 @@ class MapFragment : Fragment() {
             ActivityCompat.requestPermissions(requireActivity(), arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 101)
         }
         val task = fusedLocationProviderClient.lastLocation
+
         // default = Ellermanstraat 33
         setCenter(GeoPoint(51.23020595, 4.41655480828479), "Campus Ellermanstraat")
         task.addOnSuccessListener {
@@ -133,13 +156,20 @@ class MapFragment : Fragment() {
             }
         }
 
-        addWcMarkers()
+        clearButton.isEnabled = false
     }
 
     private fun addWcMarkers() {
         arrayList!!.forEach {
             addMarker(GeoPoint(it.lat, it.lon), it.addres, false)
         }
+    }
+
+    private fun addLocationMarker(geoPoint: GeoPoint) {
+        setCenter(geoPoint, "MyLocation")
+        sharedPrefs.edit().putFloat("lat", geoPoint.latitude.toFloat()).apply()
+        sharedPrefs.edit().putFloat("long", geoPoint.longitude.toFloat()).apply()
+        clearButton.isEnabled = true
     }
 
     private fun addMarker(geoPoint: GeoPoint, name: String, isMyLocationMarker: Boolean) {

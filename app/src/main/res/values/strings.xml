@@ -12,4 +12,6 @@
     <string name="menu_slideshow">Slideshow</string>
     <string name="hint_text">Adres</string>
     <string name="button_text">Zoek</string>
+
+    <string name="clear_button_text">Real-time locatie</string>
 </resources>
