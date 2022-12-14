@@ -111,9 +111,9 @@ class MapFragment : Fragment() {
     }
 
     private fun initMap() {
-        mMapView?.setTileSource(TileSourceFactory.WIKIMEDIA)
+        mMapView.setTileSource(TileSourceFactory.WIKIMEDIA)
 
-        mMapView?.controller?.setZoom(17.0)
+        mMapView.controller?.setZoom(17.0)
 
         mMapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
         mMapView.setMultiTouchControls(true)
