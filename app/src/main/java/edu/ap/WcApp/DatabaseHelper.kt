@@ -6,8 +6,6 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import com.beust.klaxon.JsonObject
 import okhttp3.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -30,7 +28,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     @SuppressLint("Range")
     fun allToilets(): ArrayList<ToiletViewModel> {
         val toiletsArrayList = ArrayList<ToiletViewModel>()
-        var name: String
         val db = this.readableDatabase
         val cursor = db.rawQuery(SELECT_TOILETS, null)
         with(cursor) {
@@ -43,21 +40,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 val doelgroep = cursor.getString(cursor.getColumnIndex(DOELGROEP))
                 val luiertafel = cursor.getString(cursor.getColumnIndex(LUIERTAFEL))
                 val rolstoel = cursor.getString(cursor.getColumnIndex(INTEGRAAL_TOEGANKELIJK))
-                toiletsArrayList.add(ToiletViewModel(omschrijving,street+" "+huisnr,rolstoel, lat.toDouble(), lon.toDouble(), doelgroep, luiertafel))
+                toiletsArrayList.add(ToiletViewModel(omschrijving, "$street $huisnr",rolstoel, lat.toDouble(), lon.toDouble(), doelgroep, luiertafel))
             }
         }
         cursor.close()
         return toiletsArrayList
     }
 
-    fun addToilet(firstName: String, lastName: String): Long {
-        val db = this.writableDatabase
-        val values = ContentValues()
-        values.put(STRAAT, firstName)
-        values.put(HUISNUMMER, lastName)
-
-        return db.insert(TABLE_TOILETS, null, values)
-    }
 
     fun getData(){
         val client = OkHttpClient()

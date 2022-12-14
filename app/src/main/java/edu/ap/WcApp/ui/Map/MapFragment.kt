@@ -4,18 +4,14 @@ import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import androidx.core.app.ActivityCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.ListFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -31,14 +27,9 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.ItemizedIconOverlay
-import org.osmdroid.views.overlay.ItemizedOverlay
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.OverlayItem
 import java.io.File
-import java.net.URL
-import java.net.URLEncoder
 import java.util.ArrayList
 
 class MapFragment : Fragment() {
@@ -49,7 +40,6 @@ class MapFragment : Fragment() {
     private var arrayList: ArrayList<ToiletViewModel>? = null
 
     private lateinit var mMapView: MapView
-    private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var myLocationMarker: Marker
@@ -59,8 +49,6 @@ class MapFragment : Fragment() {
     private lateinit var sharedPrefs: SharedPreferences
     private lateinit var clearButton: Button
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
 
     override fun onAttach(context: Context) {
@@ -148,17 +136,14 @@ class MapFragment : Fragment() {
         val task = fusedLocationProviderClient.lastLocation
 
         // default = Ellermanstraat 33
-        var startlocation = Location("test")
-        startlocation.latitude = 51.23020595
-        startlocation.longitude = 4.41655480828479
-        SharedViewModel.location = startlocation
+        SharedViewModel.location.latitude = 51.23020595
+        SharedViewModel.location.longitude = 4.41655480828479
         setCenter(GeoPoint(51.23020595, 4.41655480828479), "Campus Ellermanstraat")
         task.addOnSuccessListener {
             if (it != null) {
                 setCenter(GeoPoint(it.latitude, it.longitude), "MyLocation")
-                startlocation.latitude = it.latitude
-                startlocation.longitude = it.longitude
-                SharedViewModel.location = startlocation
+                SharedViewModel.location.latitude = it.latitude
+                SharedViewModel.location.longitude = it.longitude
             }
         }
         clearButton.isEnabled = false
@@ -174,10 +159,8 @@ class MapFragment : Fragment() {
         setCenter(geoPoint, "MyLocation")
         sharedPrefs.edit().putFloat("lat", geoPoint.latitude.toFloat()).apply()
         sharedPrefs.edit().putFloat("long", geoPoint.longitude.toFloat()).apply()
-        var location = Location("test")
-        location.longitude = geoPoint.longitude
-        location.latitude = geoPoint.latitude
-        SharedViewModel.location = location
+        SharedViewModel.location.latitude = geoPoint.latitude
+        SharedViewModel.location.longitude = geoPoint.longitude
         clearButton.isEnabled = true
     }
 

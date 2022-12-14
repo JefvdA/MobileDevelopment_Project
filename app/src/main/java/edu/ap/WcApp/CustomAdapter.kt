@@ -1,16 +1,10 @@
 package edu.ap.WcApp
 
-import android.content.ClipData.Item
-import android.location.Location
-import android.location.Location.distanceBetween
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import org.osmdroid.util.GeoPoint
 
 class CustomAdapter(private val mList: List<ToiletViewModel>) : RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
 

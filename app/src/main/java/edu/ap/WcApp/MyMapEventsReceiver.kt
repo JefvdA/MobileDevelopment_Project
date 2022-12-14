@@ -1,6 +1,5 @@
 package edu.ap.WcApp
 
-import android.util.Log
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.util.GeoPoint
 

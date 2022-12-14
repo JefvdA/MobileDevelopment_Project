@@ -1,13 +1,10 @@
 package edu.ap.WcApp
 
 import android.app.Application
-import android.content.ClipData.Item
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 
 
 class SharedViewModel(application: Application) : AndroidViewModel(application) {
@@ -39,7 +36,7 @@ class SharedViewModel(application: Application) : AndroidViewModel(application) 
         select(output)
     }
     companion object {
-        lateinit var location:Location
+        var location:Location = Location("location")
         var man:Boolean=false
         var vrouw:Boolean=false
         var rolstoel:Boolean=false
