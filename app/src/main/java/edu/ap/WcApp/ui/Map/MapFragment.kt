@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,6 +15,7 @@ import android.widget.Button
 import androidx.core.app.ActivityCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.ListFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -74,10 +76,7 @@ class MapFragment : Fragment() {
         arrayList = arrayListOf()
         sharedViewModel.getDataFromDb()
         sharedViewModel.getSelected().observe(viewLifecycleOwner, Observer { list ->
-            Log.d("test", list.toString())
             arrayList = list as ArrayList<ToiletViewModel>
-            Log.d("map", arrayList.toString())
-            Log.d("rolstoel", SharedViewModel.rolstoel.toString())
             mMapView?.overlays?.clear()
             initMap()
         })
@@ -149,13 +148,19 @@ class MapFragment : Fragment() {
         val task = fusedLocationProviderClient.lastLocation
 
         // default = Ellermanstraat 33
+        var startlocation = Location("test")
+        startlocation.latitude = 51.23020595
+        startlocation.longitude = 4.41655480828479
+        SharedViewModel.location = startlocation
         setCenter(GeoPoint(51.23020595, 4.41655480828479), "Campus Ellermanstraat")
         task.addOnSuccessListener {
             if (it != null) {
                 setCenter(GeoPoint(it.latitude, it.longitude), "MyLocation")
+                startlocation.latitude = it.latitude
+                startlocation.longitude = it.longitude
+                SharedViewModel.location = startlocation
             }
         }
-
         clearButton.isEnabled = false
     }
 
@@ -169,6 +174,10 @@ class MapFragment : Fragment() {
         setCenter(geoPoint, "MyLocation")
         sharedPrefs.edit().putFloat("lat", geoPoint.latitude.toFloat()).apply()
         sharedPrefs.edit().putFloat("long", geoPoint.longitude.toFloat()).apply()
+        var location = Location("test")
+        location.longitude = geoPoint.longitude
+        location.latitude = geoPoint.latitude
+        SharedViewModel.location = location
         clearButton.isEnabled = true
     }
 

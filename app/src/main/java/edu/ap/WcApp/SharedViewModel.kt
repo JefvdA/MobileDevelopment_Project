@@ -39,6 +39,7 @@ class SharedViewModel(application: Application) : AndroidViewModel(application) 
         select(output)
     }
     companion object {
+        lateinit var location:Location
         var man:Boolean=false
         var vrouw:Boolean=false
         var rolstoel:Boolean=false

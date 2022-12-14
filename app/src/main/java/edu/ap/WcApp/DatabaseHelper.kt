@@ -47,7 +47,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             }
         }
         cursor.close()
-        Log.d("database", toiletsArrayList.toString())
         return toiletsArrayList
     }
 
@@ -78,7 +77,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     val json_contact: JSONObject = JSONObject(str_response)
                     //creating json array
                     var jsonarray_info: JSONArray = json_contact.getJSONArray("features")
-                    Log.d("json",jsonarray_info.toString())
                     addJson(jsonarray_info)
                 }
             }

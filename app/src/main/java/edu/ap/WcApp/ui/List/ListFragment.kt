@@ -35,7 +35,6 @@ class ListFragment : Fragment(R.layout.fragment_list) {
     private var databaseHelper: DatabaseHelper? = null
     private var arrayList: ArrayList<ToiletViewModel>? = null
     private var linearLayoutManager: LinearLayoutManager? = null
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var location: Location
     private val sharedViewModel: SharedViewModel by viewModels();
 
@@ -49,6 +48,11 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         this.databaseHelper = DatabaseHelper(context)
     }
 
+    override fun onStart() {
+        super.onStart()
+        location = SharedViewModel.location
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -57,14 +61,10 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         sharedViewModel.getDataFromDb()
         arrayList = arrayListOf()
         sharedViewModel.getSelected().observe(viewLifecycleOwner, Observer { list ->
-            Log.d("test", list.toString())
             arrayList = list as ArrayList<ToiletViewModel>
+            location = SharedViewModel.location
             readData()
         })
-        location = Location("start")
-        location.longitude = 0.0
-        location.latitude = 0.0
-        getLocation()
         _binding = FragmentListBinding.inflate(inflater, container, false)
         val root: View = binding.root
         binding.button.setOnClickListener {
@@ -108,36 +108,6 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         data.sortBy { it.distance }
         val adapter = CustomAdapter(data)
         recyclerView.adapter = adapter
-    }
-
-    fun getLocation() {
-        fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(requireContext())
-
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-            && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-                101
-            )
-        }
-        val task = fusedLocationProviderClient.lastLocation
-        task.addOnSuccessListener {
-            if (it != null) {
-                location.latitude = it.latitude
-                location.longitude = it.longitude
-                Log.d("loc", location.toString())
-                readData()
-            }
-        }
     }
 
     override fun onDestroyView() {
